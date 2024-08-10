@@ -1,3 +1,14 @@
-# Talenflow_Chatbot
+# Talenflow Chatbot using RAG
 
-It is a chatbot for Talenflow website which basically solves the user queries about the services of the company.
+## Overview
+
+This project implements a Retrieval-Augmented Generation (RAG) based chatbot for a website, Talenflow enabling users to ask questions and receive answers derived from a PDF document. The chatbot utilizes LangChain and Google Generative AI to generate detailed responses based on the context provided in the PDF.
+
+## Set up and Installation
+
+1. **Clone the Repository:**
+   ```bash
+   git clone <repository-url>
+   cd <repository-directory>
+
+2. 
