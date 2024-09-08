@@ -1,73 +1,18 @@
-from PyPDF2 import PdfReader
 import os
-from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import FAISS
-from langchain.chains.question_answering import load_qa_chain
-from langchain.prompts import PromptTemplate
 from dotenv import load_dotenv, find_dotenv
+from pdf_reader import get_text_from_pdf
+from text_preprocessing import text_chunks
+from vector_store import store_vector
+from qa_chain import conversation_chain
+from models import initialize_models
 
 # Load the environment variables
 load_dotenv(find_dotenv())
 
-# Load the base LLM and Embedding model
-llm_model = ChatGoogleGenerativeAI(
-    model='gemini-pro',
-    temperature=0.0
-)
-
-embeddings_model = GoogleGenerativeAIEmbeddings(
-    model="models/embedding-001"
-)
-
-def get_text_from_pdf(pdf_path):
-    text = ""
-    with open(pdf_path, 'rb') as file:
-        pdf = PdfReader(file)
-        for page in pdf.pages:
-            text += page.extract_text()
-    return text
-
-def text_chunks(text):
-    splitter = RecursiveCharacterTextSplitter(
-        chunk_size=300,
-        chunk_overlap=50
-    )
-    chunks = splitter.split_text(text)
-    return chunks
-
-def store_vector(chunks):
-    vector_store = FAISS.from_texts(chunks, embeddings_model)
-    vector_store.save_local("faiss_index")
-    return vector_store
-
-def conversation_chain():
-    prompt_template = """
-    Answer the question in full detail or in points from the provided context, make sure to provide all the details to the user, if the answer is not in
-    provided context just say, "answer is not available in the context", don't provide the wrong answer
-
-    Context: {context}
-    Question: {question}
-
-    Answer:
-    """
-    
-    prompt = PromptTemplate(
-        template=prompt_template,
-        input_variables=['context', 'question']
-    )
-    
-    chain = load_qa_chain(
-        llm=llm_model,
-        chain_type="stuff",
-        prompt=prompt
-    )
-    return chain
-
-def user_input(user_question, vector_store):
+def user_input(user_question, vector_store, llm_model):
     docs = vector_store.similarity_search(user_question)
     
-    chain = conversation_chain()
+    chain = conversation_chain(llm_model)
     
     answer = chain(
         {"input_documents": docs, "question": user_question},
@@ -75,14 +20,21 @@ def user_input(user_question, vector_store):
     print(answer['output_text'])
 
 def main():
-    #pdf_path = r"C:\Users\DELL\Downloads\Talenflow_Chatbot_using_RAG\Data\data.pdf"
-    pdf_path = r"Data\data.pdf"
+    # Initialize models
+    llm_model, embeddings_model = initialize_models()
+
+    # Process the PDF
+    pdf_path = os.path.join("Data", "data.pdf")
     raw_text = get_text_from_pdf(pdf_path)
     chunks = text_chunks(raw_text)
-    vector_store = store_vector(chunks)
+    vector_store = store_vector(chunks, embeddings_model)
     
-    user_question = input("Enter your question (or 'quit' to exit): ")
-    user_input(user_question, vector_store)
+    print("Chatbot is ready. Type 'quit' to exit.")
+    while True:
+        user_question = input("Enter your question: ")
+        if user_question.lower() == 'quit':
+            break
+        user_input(user_question, vector_store, llm_model)
 
 if __name__ == "__main__":
     main()
