@@ -1,15 +1,12 @@
 from PyPDF2 import PdfReader
+import io
 
-def get_text_from_pdf(pdf_path):
-    """
-    Extract text from a PDF file.
-    """
+def get_text_from_pdf(pdf_content):
     try:
         text = ""
-        with open(pdf_path, 'rb') as file:
-            pdf = PdfReader(file)
-            for page in pdf.pages:
-                text += page.extract_text()
+        pdf = PdfReader(io.BytesIO(pdf_content))
+        for page in pdf.pages:
+            text += page.extract_text()
         return text
     except Exception as e:
         print(f"Error reading PDF: {e}")

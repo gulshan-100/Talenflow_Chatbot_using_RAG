@@ -7,6 +7,7 @@ from langchain_community.vectorstores import FAISS
 from langchain.chains.question_answering import load_qa_chain
 from langchain.prompts import PromptTemplate
 from dotenv import load_dotenv, find_dotenv
+from pdf_reader import get_text_from_pdf
 
 # Load the environment variables
 load_dotenv(find_dotenv())
@@ -20,18 +21,6 @@ llm_model = ChatGoogleGenerativeAI(
 embeddings_model = GoogleGenerativeAIEmbeddings(
     model="models/embedding-001"
 )
-
-def get_text_from_pdf(pdf_path):
-    try:
-        text = ""
-        with open(pdf_path, 'rb') as file:
-            pdf = PdfReader(file)
-            for page in pdf.pages:
-                text += page.extract_text()
-        return text
-    except Exception as e:
-        print(f"Error reading the PDF document: {e}")
-        return None
 
 def text_chunks(text):
     splitter = RecursiveCharacterTextSplitter(
@@ -90,7 +79,7 @@ def user_input(user_question, vector_store):
         print(f"Error processing the input: {e}")
         
 def main():
-    pdf_path = "data.pdf"
+    pdf_path = r"Data\data.pdf"
     raw_text = get_text_from_pdf(pdf_path)
     if not raw_text:
         print("Error reading the PDF Document")

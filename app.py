@@ -1,4 +1,3 @@
-# Importing the Libraries
 from PyPDF2 import PdfReader
 import os
 from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
@@ -44,7 +43,7 @@ def store_vector(chunks):
 
 def conversation_chain():
     prompt_template = """
-    Answer the question as detailed as possible from the provided context, make sure to provide all the details to the user, if the answer is not in
+    Answer the question in full detail or in points from the provided context, make sure to provide all the details to the user, if the answer is not in
     provided context just say, "answer is not available in the context", don't provide the wrong answer
 
     Context: {context}
@@ -73,11 +72,11 @@ def user_input(user_question, vector_store):
     answer = chain(
         {"input_documents": docs, "question": user_question},
     )
-    
     print(answer['output_text'])
 
 def main():
-    pdf_path = "data.pdf"
+    #pdf_path = r"C:\Users\DELL\Downloads\Talenflow_Chatbot_using_RAG\Data\data.pdf"
+    pdf_path = r"Data\data.pdf"
     raw_text = get_text_from_pdf(pdf_path)
     chunks = text_chunks(raw_text)
     vector_store = store_vector(chunks)
